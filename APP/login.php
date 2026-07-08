@@ -46,7 +46,7 @@ else
 {
     
     $message = "Bentornato";
-    header("Location: WEBCHAT/index.php");
+    header("Location: webchat/index.php");
 }
 ?>
 <!DOCTYPE html>

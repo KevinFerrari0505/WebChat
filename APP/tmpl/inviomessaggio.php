@@ -18,7 +18,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if (is_numeric($messaggio_inviato)) {
 
             echo "Messaggio inviato";
-            Header("Location: ../WEBCHAT/index.php?idmittente=$idutenteinviato&idDestinatario=$idutentericevuto");
+            Header("Location: ../webchat/index.php?idmittente=$idutenteinviato&idDestinatario=$idutentericevuto");
         } 
         else 
         {
