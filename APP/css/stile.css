@@ -1,0 +1,64 @@
+html,body
+{
+    height: 100%;
+}
+body
+{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+
+
+header 
+{
+    background-color: #074400;
+    color: #fff;
+    padding: 10px;
+    text-align: center;
+}
+
+#main-content {
+    height: 100%;
+    display: flex;
+    
+}
+
+#chat-window
+{
+    
+    position: relative;
+}
+.column {
+    flex: 1;
+}
+#chat
+{
+    position: absolute;
+    bottom: 10px;
+}
+#menu 
+{
+    background-color: #eee;
+    max-width: 40%;
+}
+
+.chat-body 
+{
+    height: 400px; 
+    overflow-y: auto;
+}
+
+footer 
+{
+    background-color: #074400;
+    color: white;
+    padding: 30px;
+    text-align: center;
+    margin-top: auto; /* Fissa il footer in basso */
+}
+
+
+
+
