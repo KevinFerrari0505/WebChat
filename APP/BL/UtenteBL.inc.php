@@ -13,8 +13,11 @@ class UtenteBL
             die("Connessione fallita: " . $conn->connect_error);
         }
 
+        // Genera l'hash sicuro della password per motivi di sicurezza
+        $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+
         // Esegui l'inserimento nel database
-        $sql = "INSERT INTO utenti (username, nome, cognome, email, pwd, codverificaemail) VALUES ('$username', '$nome', '$cognome', '$email', '$password', null)";
+        $sql = "INSERT INTO utenti (username, nome, cognome, email, pwd, codverificaemail) VALUES ('$username', '$nome', '$cognome', '$email', '$passwordHash', null)";
 
         if ($conn->query($sql) === TRUE) {
             $id = $conn->insert_id;
@@ -44,35 +47,31 @@ class UtenteBL
             die("Connessione al database fallita: " . $conn->connect_error);
         }
 
-        // Query per cercare l'utente nel database 
-        $query = "SELECT * FROM utenti WHERE email='$email' AND pwd='$password'";
+        // Query per cercare l'utente tramite email (la password si verifica dopo, con password_verify)
+        $query = "SELECT * FROM utenti WHERE email='$email'";
         $result = $conn->query($query);
 
         if ($result->num_rows == 1) {
-            // Utente trovato, avvia la sessione
-            session_start();
-            $_SESSION['email'] = $email;
-            //Prendo l'id associato a quell'email
-            $sql = "SELECT id FROM utenti WHERE email = '$email'";
-            $result2 = $conn->query($sql);
-            if($result2->num_rows == 1)
-            {
-                $risultati = array();
-                while ($row = mysqli_fetch_assoc($result2)) {
-                    $risultati[] = $row;
-                }
-                foreach($risultati as $risultato)
-                {
-                    $id = $risultato['id'];
-                }
-                $_SESSION['idMittente'] = $id;
+            $utente = $result->fetch_assoc();
+
+            // Verifica la password confrontandola con l'hash salvato nel database
+            if (password_verify($password, $utente['pwd'])) {
+                // Utente trovato e password corretta, avvia la sessione
+                session_start();
+                $_SESSION['email'] = $email;
+                $_SESSION['idMittente'] = $utente['id'];
+
+                // Chiudi la connessione al database
+                $conn->close();
+                return true; // Ritorna true se l'accesso è avvenuto con successo
+            } else {
+                // Password errata
+                $conn->close();
+                return false;
             }
-            // Chiudi la connessione al database
-            $conn->close();
-            return true; // Ritorna true se l'accesso è avvenuto con successo
         } else 
         {
-            // Utente non trovato o credenziali non valide
+            // Utente non trovato
             // Chiudi la connessione al database
             $conn->close();
             return false; // Ritorna false se l'accesso non è avvenuto con successo
@@ -186,8 +185,9 @@ class UtenteBL
             } 
             else 
             {
-                // Password valide, effettuo l'aggiornamento nel database
-                $sql = "UPDATE utenti SET pwd = '$nuovaPassword' WHERE email = '$email'";
+                // Password valide, genero l'hash e effettuo l'aggiornamento nel database
+                $nuovaPasswordHash = password_hash($nuovaPassword, PASSWORD_DEFAULT);
+                $sql = "UPDATE utenti SET pwd = '$nuovaPasswordHash' WHERE email = '$email'";
                 $result = $conn->query($sql);
                 if ($result) 
                 {
