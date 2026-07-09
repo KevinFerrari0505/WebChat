@@ -125,7 +125,7 @@ class UtenteBL
             if ($updateResult) {
                 $subject = 'Recupero Password';
                 $message = "Ciao,\n\nHai richiesto il recupero della password. Utilizza il seguente link per ripristinarla:\n\n";
-                $message .= "http://example.com/reset_password.php?email=$email&code=$code\n\nGrazie!\n";
+                $message .= "http://localhost/WebChat/validationcode?email=$email&code=$code\n\nGrazie!\n";
                 $message .= "Codice di Verifica: $code";
                 $headers = "From: your@example.com\r\n";
                 $headers .= "Reply-To: your@example.com\r\n";
