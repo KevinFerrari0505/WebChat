@@ -97,6 +97,10 @@ Lo schema/dump è disponibile nei file `.sql` nella cartella `sql/`.
 - Le query al database usano prepared statement (`bind_param`) per prevenire SQL injection.
 - Le credenziali del database non sono nel codice versionato: vengono lette da `APP/BL/config.php`, escluso da git (vedi `APP/BL/config.example.php` come modello).
 
+## 🚧 Sviluppi futuri
+
+- Invio e gestione di file/allegati nei messaggi (la struttura è già predisposta: DMO `File.inc.php` e classe `FileBL.inc.php`, ancora da implementare).
+
 ## ✍️ Autore
 
 Kevin Ferrari
