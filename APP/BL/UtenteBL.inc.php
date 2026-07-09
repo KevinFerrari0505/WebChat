@@ -16,11 +16,13 @@ class UtenteBL
         // Genera l'hash sicuro della password per motivi di sicurezza
         $passwordHash = password_hash($password, PASSWORD_DEFAULT);
 
-        // Esegui l'inserimento nel database
-        $sql = "INSERT INTO utenti (username, nome, cognome, email, pwd, codverificaemail) VALUES ('$username', '$nome', '$cognome', '$email', '$passwordHash', null)";
+        // Esegui l'inserimento nel database tramite prepared statement
+        $stmt = $conn->prepare("INSERT INTO utenti (username, nome, cognome, email, pwd, codverificaemail) VALUES (?, ?, ?, ?, ?, null)");
+        $stmt->bind_param("sssss", $username, $nome, $cognome, $email, $passwordHash);
 
-        if ($conn->query($sql) === TRUE) {
+        if ($stmt->execute()) {
             $id = $conn->insert_id;
+            $stmt->close();
             // Chiudi la connessione al database
             $conn->close();
 
@@ -29,7 +31,8 @@ class UtenteBL
         else 
         {
             // Gestione degli errori
-            $error = "Errore durante la registrazione: " . $conn->error;
+            $error = "Errore durante la registrazione: " . $stmt->error;
+            $stmt->close();
 
             // Chiudi la connessione al database
             $conn->close();
@@ -48,11 +51,14 @@ class UtenteBL
         }
 
         // Query per cercare l'utente tramite email (la password si verifica dopo, con password_verify)
-        $query = "SELECT * FROM utenti WHERE email='$email'";
-        $result = $conn->query($query);
+        $stmt = $conn->prepare("SELECT * FROM utenti WHERE email = ?");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
 
         if ($result->num_rows == 1) {
             $utente = $result->fetch_assoc();
+            $stmt->close();
 
             // Verifica la password confrontandola con l'hash salvato nel database
             if (password_verify($password, $utente['pwd'])) {
@@ -72,6 +78,7 @@ class UtenteBL
         } else 
         {
             // Utente non trovato
+            $stmt->close();
             // Chiudi la connessione al database
             $conn->close();
             return false; // Ritorna false se l'accesso non è avvenuto con successo
@@ -88,10 +95,13 @@ class UtenteBL
         }
 
         // Verifica se l'email esiste nel database
-        $query = "SELECT * FROM utenti WHERE email = '$email'";
-        $result = $conn->query($query);
+        $stmt = $conn->prepare("SELECT * FROM utenti WHERE email = ?");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
 
         if ($result->num_rows > 0) {
+            $stmt->close();
             // Funzione per generare un codice alfanumerico casuale
             function generateRandomCode($length = 6) 
             {
@@ -106,8 +116,10 @@ class UtenteBL
             $code = generateRandomCode();
 
             // Aggiorna il codice di verifica nel database
-            $updateQuery = "UPDATE utenti SET codverificaemail = '$code' WHERE email = '$email'";
-            $updateResult = $conn->query($updateQuery);
+            $updateStmt = $conn->prepare("UPDATE utenti SET codverificaemail = ? WHERE email = ?");
+            $updateStmt->bind_param("ss", $code, $email);
+            $updateResult = $updateStmt->execute();
+            $updateStmt->close();
 
             // Invia l'email con il codice di verifica
             if ($updateResult) {
@@ -143,16 +155,20 @@ class UtenteBL
         }
 
         // Verifica se il codice è corretto
-        $sql = "SELECT * FROM utenti WHERE email = '$email' AND codverificaemail = '$code'";
-        $result = $conn->query($sql);
+        $stmt = $conn->prepare("SELECT * FROM utenti WHERE email = ? AND codverificaemail = ?");
+        $stmt->bind_param("ss", $email, $code);
+        $stmt->execute();
+        $result = $stmt->get_result();
 
         if ($result->num_rows > 0) 
         {
+            $stmt->close();
             return true;
         } 
         else 
         {
             // Codice di verifica errato
+            $stmt->close();
             return false;
         }
 
@@ -187,8 +203,10 @@ class UtenteBL
             {
                 // Password valide, genero l'hash e effettuo l'aggiornamento nel database
                 $nuovaPasswordHash = password_hash($nuovaPassword, PASSWORD_DEFAULT);
-                $sql = "UPDATE utenti SET pwd = '$nuovaPasswordHash' WHERE email = '$email'";
-                $result = $conn->query($sql);
+                $stmt = $conn->prepare("UPDATE utenti SET pwd = ? WHERE email = ?");
+                $stmt->bind_param("ss", $nuovaPasswordHash, $email);
+                $result = $stmt->execute();
+                $stmt->close();
                 if ($result) 
                 {
                     // Password aggiornata con successo
