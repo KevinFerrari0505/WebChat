@@ -18,7 +18,7 @@ Il progetto segue una separazione a tre livelli:
 |---|---|---|
 | **DMO** (Data Model Object) | `APP/DMO/` | Classi che rappresentano le entità del dominio (`Utente`, `Messaggio`, `File`) con relativi getter/setter |
 | **BL** (Business Logic) | `APP/BL/` | Logica applicativa e accesso al database (`UtenteBL`, `MessaggioBL`, `FileBL`, connessione al DB) |
-| **Presentazione** | `APP/*.php`, `APP/WEBCHAT/`, `APP/tmpl/` | Pagine PHP e template inclusi che compongono l'interfaccia utente |
+| **Presentazione** | `APP/*.php`, `APP/webchat/`, `APP/tmpl/` | Pagine PHP e template inclusi che compongono l'interfaccia utente |
 
 Risorse statiche in `APP/css/`, `APP/js/`, `APP/img/`.
 
@@ -31,12 +31,14 @@ WebChat/
 │   │   ├── UtenteBL.inc.php        # Registrazione, login, recupero password
 │   │   ├── MessaggioBL.inc.php     # Invio e recupero messaggi
 │   │   ├── FileBL.inc.php          # Gestione allegati (da implementare)
-│   │   └── connessione_db.php      # Connessione MySQL (mysqli)
+│   │   ├── connessione_db.php      # Connessione MySQL (mysqli)
+│   │   ├── config.example.php      # Modello di configurazione DB (da copiare in config.php)
+│   │   └── config.php              # Configurazione DB reale (locale, escluso da git)
 │   ├── DMO/                        # Data Model Objects
 │   │   ├── Utente.inc.php
 │   │   ├── Messaggio.inc.php
 │   │   └── File.inc.php
-│   ├── WEBCHAT/
+│   ├── webchat/
 │   │   └── index.php               # Pagina principale della chat
 │   ├── tmpl/                       # Template/include riutilizzabili
 │   │   ├── header.inc.php
@@ -57,9 +59,11 @@ WebChat/
 │   ├── recovery.php                # Recupero password (invio codice)
 │   ├── updatepwd.php                # Aggiornamento password
 │   └── validationcode.php          # Verifica codice di recupero
-├── dbregistrazioni-db_*.sql         # Dump/schema del database MySQL
-├── WebChat.dia                      # Diagramma del progetto (Dia)
-├── WEB CHAT Ferrari.docx            # Relazione/documentazione del progetto
+├── sql/
+│   └── dbregistrazioni-db_*.sql    # Dump/schema del database MySQL
+├── docs/
+│   ├── WebChat.dia                 # Diagramma del progetto (Dia)
+│   └── WEB CHAT Ferrari.docx       # Relazione/documentazione del progetto
 └── README.md
 ```
 
@@ -69,7 +73,7 @@ Il database `dbregistrazioni` è composto principalmente dalle tabelle:
 - **utenti** — id, username, nome, cognome, email, pwd, codverificaemail
 - **messaggi** — id, datainvio, orarioinvio, orarioricevuto, orariovisualizzato, testo, idutenteinviato, idutentericevuto
 
-Lo schema/dump è disponibile nei file `.sql` nella root del progetto.
+Lo schema/dump è disponibile nei file `.sql` nella cartella `sql/`.
 
 ## ⚙️ Requisiti
 
@@ -79,20 +83,19 @@ Lo schema/dump è disponibile nei file `.sql` nella root del progetto.
 
 ## 🚀 Avvio del progetto
 
-1. Importa uno dei file `dbregistrazioni-db_*.sql` nel tuo server MySQL.
-2. Configura le credenziali di connessione in `APP/BL/connessione_db.php`.
+1. Importa uno dei file `sql/dbregistrazioni-db_*.sql` nel tuo server MySQL.
+2. Copia `APP/BL/config.example.php` in `APP/BL/config.php` e inserisci le tue credenziali del database.
 3. Avvia un server PHP puntando alla cartella `APP/`:
    ```bash
    php -S localhost:8000 -t APP
    ```
 4. Apri `http://localhost:8000/registrazione.php` per creare un account, poi accedi da `login.php`.
 
-## ⚠️ Note e miglioramenti consigliati
+## 🔒 Sicurezza
 
-- Le password sono attualmente salvate **in chiaro**: andrebbe introdotto l'hashing (es. `password_hash()`/`password_verify()`).
-- Le query SQL sono costruite per concatenazione di stringhe: andrebbero convertite in **prepared statement** per prevenire SQL injection.
-- Le credenziali del database sono hardcoded nel codice: da spostare in un file di configurazione escluso da versionamento (`.env` + `.gitignore`).
-- `FileBL.inc.php` è ancora una classe vuota, predisposta per una futura gestione degli allegati.
+- Le password sono salvate tramite hashing (`password_hash()` / `password_verify()`), mai in chiaro.
+- Le query al database usano prepared statement (`bind_param`) per prevenire SQL injection.
+- Le credenziali del database non sono nel codice versionato: vengono lette da `APP/BL/config.php`, escluso da git (vedi `APP/BL/config.example.php` come modello).
 
 ## ✍️ Autore
 
